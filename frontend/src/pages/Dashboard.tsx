@@ -1,13 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowDown, ArrowUp, Wallet, TrendingDown, TrendingUp, ChevronLeft, ChevronRight, Calendar,
+  AlertTriangle, ArrowRight,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import api from "../services/api";
-import type { DashboardData } from "../types";
+import type { DashboardData, Wallet as WalletType } from "../types";
+import WalletSelector from "../components/WalletSelector";
 
 const PIE_COLORS = ["#39ff14", "#00f5ff", "#bf00ff", "#ff0099", "#ffcc00", "#ff6600", "#00e5ff", "#e040fb"];
 
@@ -95,12 +98,29 @@ export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [chartRange, setChartRange] = useState<number>(1);
+  const [wallets, setWallets] = useState<WalletType[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState<number | "all">("all");
+  const [budgetAlerts, setBudgetAlerts] = useState<any[]>([]);
 
-  const fetchDashboard = useCallback(async (year: number, month: number, range: number) => {
+  const fetchBudgetAlerts = useCallback(async (year: number, month: number) => {
+    try {
+      const res = await api.get("/budgets/alerts", { params: { year, month } });
+      setBudgetAlerts(res.data.alerts || []);
+    } catch {
+      // Ignore if fail
+    }
+  }, []);
+
+  const fetchDashboard = useCallback(async (year: number, month: number, range: number, walletId: number | "all") => {
     setLoading(true);
     try {
-      const response = await api.get("/dashboard", { params: { year, month, chart_range: range } });
+      const params: any = { year, month, chart_range: range };
+      if (walletId !== "all") params.wallet_id = walletId;
+      const response = await api.get("/dashboard", { params });
       setData(response.data);
+      if (response.data.wallets) {
+        setWallets(response.data.wallets);
+      }
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
     } finally {
@@ -108,9 +128,23 @@ export default function Dashboard() {
     }
   }, []);
 
+  const fetchWallets = useCallback(async () => {
+    try {
+      const response = await api.get("/wallets");
+      setWallets(response.data.wallets || response.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchDashboard(selectedYear, selectedMonth, chartRange);
-  }, [selectedYear, selectedMonth, chartRange, fetchDashboard]);
+    fetchWallets();
+  }, [fetchWallets]);
+
+  useEffect(() => {
+    fetchDashboard(selectedYear, selectedMonth, chartRange, selectedWalletId);
+    fetchBudgetAlerts(selectedYear, selectedMonth);
+  }, [selectedYear, selectedMonth, chartRange, selectedWalletId, fetchDashboard, fetchBudgetAlerts]);
 
   const goPrev = () => {
     if (selectedMonth === 1) { setSelectedMonth(12); setSelectedYear(y => y - 1); }
@@ -182,40 +216,163 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Month Filter */}
-        <div className="glass" style={{ display: "flex", alignItems: "center", gap: "0", padding: "4px", borderRadius: "12px", border: "1px solid rgba(57,255,20,0.15)" }}>
-          <button
-            onClick={goPrev}
-            style={{ width: "34px", height: "34px", borderRadius: "8px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", transition: "all 0.2s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(57,255,20,0.08)"; (e.currentTarget as HTMLElement).style.color = "var(--neon-green)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
-          >
-            <ChevronLeft size={16} />
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          {/* Wallet Selector */}
+          {wallets.length > 0 && (
+            <WalletSelector
+              wallets={wallets}
+              selectedWalletId={selectedWalletId}
+              onChange={setSelectedWalletId}
+            />
+          )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 12px", minWidth: "150px", justifyContent: "center" }}>
-            <Calendar size={13} color="var(--neon-green)" />
-            <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", whiteSpace: "nowrap" }}>
-              {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-            </span>
-            {isCurrentMonth && (
-              <span style={{ fontSize: "10px", fontWeight: "600", color: "var(--neon-green)", background: "rgba(57,255,20,0.1)", border: "1px solid rgba(57,255,20,0.25)", borderRadius: "99px", padding: "1px 7px" }}>
-                Ini
+          {/* Month Filter */}
+          <div className="glass" style={{ display: "flex", alignItems: "center", gap: "0", padding: "4px", borderRadius: "12px", border: "1px solid rgba(57,255,20,0.15)" }}>
+            <button
+              onClick={goPrev}
+              style={{ width: "34px", height: "34px", borderRadius: "8px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", transition: "all 0.2s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(57,255,20,0.08)"; (e.currentTarget as HTMLElement).style.color = "var(--neon-green)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 12px", minWidth: "150px", justifyContent: "center" }}>
+              <Calendar size={13} color="var(--neon-green)" />
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", whiteSpace: "nowrap" }}>
+                {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
               </span>
-            )}
-          </div>
+              {isCurrentMonth && (
+                <span style={{ fontSize: "10px", fontWeight: "600", color: "var(--neon-green)", background: "rgba(57,255,20,0.1)", border: "1px solid rgba(57,255,20,0.25)", borderRadius: "99px", padding: "1px 7px" }}>
+                  Ini
+                </span>
+              )}
+            </div>
 
-          <button
-            onClick={goNext}
-            disabled={isCurrentMonth}
-            style={{ width: "34px", height: "34px", borderRadius: "8px", border: "none", background: "transparent", cursor: isCurrentMonth ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: isCurrentMonth ? "var(--text-muted)" : "var(--text-secondary)", transition: "all 0.2s", opacity: isCurrentMonth ? 0.4 : 1 }}
-            onMouseEnter={e => { if (!isCurrentMonth) { (e.currentTarget as HTMLElement).style.background = "rgba(57,255,20,0.08)"; (e.currentTarget as HTMLElement).style.color = "var(--neon-green)"; } }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = isCurrentMonth ? "var(--text-muted)" : "var(--text-secondary)"; }}
-          >
-            <ChevronRight size={16} />
-          </button>
+            <button
+              onClick={goNext}
+              disabled={isCurrentMonth}
+              style={{ width: "34px", height: "34px", borderRadius: "8px", border: "none", background: "transparent", cursor: isCurrentMonth ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: isCurrentMonth ? "var(--text-muted)" : "var(--text-secondary)", transition: "all 0.2s", opacity: isCurrentMonth ? 0.4 : 1 }}
+              onMouseEnter={e => { if (!isCurrentMonth) { (e.currentTarget as HTMLElement).style.background = "rgba(57,255,20,0.08)"; (e.currentTarget as HTMLElement).style.color = "var(--neon-green)"; } }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = isCurrentMonth ? "var(--text-muted)" : "var(--text-secondary)"; }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Budget Warning Banner if alerts exist */}
+      {budgetAlerts.length > 0 && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            marginBottom: "20px",
+            padding: "14px 18px",
+            borderRadius: "14px",
+            background: "rgba(255,80,128,0.08)",
+            border: "1px solid rgba(255,80,128,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "12px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <AlertTriangle size={20} color="#ff5080" />
+            <div>
+              <p style={{ fontSize: "14px", fontWeight: "700", color: "#ff5080", marginBottom: "2px" }}>
+                Peringatan Anggaran Bulan Ini
+              </p>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                Ada {budgetAlerts.length} kategori yang mendekati atau telah melebihi batas pengeluaran:{" "}
+                <span style={{ color: "var(--text-primary)", fontWeight: "600" }}>
+                  {budgetAlerts.map((a: any) => `${a.category?.name} (${a.percentage}%)`).join(", ")}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/budgets"
+            className="btn-ghost"
+            style={{
+              fontSize: "12px",
+              padding: "6px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              borderColor: "rgba(255,80,128,0.4)",
+              color: "#ff5080",
+            }}
+          >
+            Lihat Anggaran <ArrowRight size={14} />
+          </Link>
+        </div>
+      )}
+
+      {/* Mini Wallet Cards */}
+      {wallets.length > 0 && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            display: "flex",
+            gap: "12px",
+            overflowX: "auto",
+            paddingBottom: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          {wallets.map((wallet) => {
+            const isSelected = selectedWalletId === wallet.id;
+            return (
+              <div
+                key={wallet.id}
+                onClick={() => setSelectedWalletId(isSelected ? "all" : wallet.id)}
+                className="glass"
+                style={{
+                  minWidth: "170px",
+                  padding: "12px 14px",
+                  cursor: "pointer",
+                  borderRadius: "14px",
+                  border: isSelected
+                    ? `1px solid ${wallet.color}`
+                    : "1px solid rgba(255,255,255,0.08)",
+                  boxShadow: isSelected ? `0 0 14px ${wallet.color}40` : "none",
+                  transition: "all 0.2s",
+                  background: isSelected ? `${wallet.color}10` : "rgba(10,10,16,0.6)",
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: wallet.color,
+                      boxShadow: `0 0 6px ${wallet.color}`,
+                    }}
+                  />
+                  <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)" }}>
+                    {wallet.name}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "800",
+                    color: wallet.color,
+                  }}
+                >
+                  {wallet.balance !== undefined ? formatRupiah(wallet.balance) : "—"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="animate-fade-in-up delay-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "24px" }}>
@@ -231,7 +388,9 @@ export default function Dashboard() {
           <p style={{ fontSize: "26px", fontWeight: "800", color: "var(--neon-cyan)", textShadow: "0 0 15px rgba(0,245,255,0.5)", letterSpacing: "-0.02em" }}>
             {formatRupiah(data.summary.balance)}
           </p>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px" }}>Total saldo saat ini</p>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px" }}>
+            {selectedWalletId === "all" ? "Total saldo saat ini" : `Saldo dompet ${wallets.find(w => w.id === selectedWalletId)?.name || ""}`}
+          </p>
         </div>
 
         {/* Income */}
@@ -321,12 +480,12 @@ export default function Dashboard() {
                   tick={({ x, y, payload, index }) => {
                     const isSelected = index === monthlyChartData.length - 1;
                     return (
-                      <text x={x} y={y + 12} textAnchor="middle" fontSize={12}
-                        fill={isSelected ? "#39ff14" : "rgba(240,240,240,0.4)"}
-                        fontWeight={isSelected ? "700" : "400"}
-                      >
-                        {payload.value}
-                      </text>
+                    <text x={x} y={Number(y) + 12} textAnchor="middle" fontSize={12}
+                      fill={isSelected ? "#39ff14" : "rgba(240,240,240,0.4)"}
+                      fontWeight={isSelected ? "700" : "400"}
+                    >
+                      {payload.value}
+                    </text>
                     );
                   }}
                   axisLine={{ stroke: "rgba(255,255,255,0.08)" }}

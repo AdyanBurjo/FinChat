@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, Send, CheckCircle, XCircle, Sparkles, AlertCircle, X } from "lucide-react";
 import api from "../services/api";
+import type { Wallet as WalletType } from "../types";
 
 interface ParsedTransaction {
   type: "income" | "expense";
@@ -9,6 +10,7 @@ interface ParsedTransaction {
   category: string | null;
   description: string;
   transaction_date: string;
+  wallet_id?: number | null;
 }
 
 const formatRupiah = (value: number) =>
@@ -24,10 +26,29 @@ const examples = [
 export default function Chat() {
   const [message, setMessage] = useState("");
   const [parsed, setParsed] = useState<ParsedTransaction | null>(null);
+  const [wallets, setWallets] = useState<WalletType[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const response = await api.get("/wallets");
+        const list: WalletType[] = response.data.wallets || response.data || [];
+        setWallets(list);
+        const defaultWallet = list.find((w) => w.is_default);
+        if (defaultWallet) {
+          setSelectedWalletId(defaultWallet.id.toString());
+        }
+      } catch (err) {
+        console.error("Gagal memuat dompet:", err);
+      }
+    };
+    fetchWallets();
+  }, []);
 
   const handleParse = async () => {
     if (!message.trim()) return;
@@ -48,7 +69,10 @@ export default function Chat() {
     if (!parsed) return;
     setSaving(true);
     try {
-      await api.post("/chat/confirm", parsed);
+      await api.post("/chat/confirm", {
+        ...parsed,
+        wallet_id: selectedWalletId ? Number(selectedWalletId) : null,
+      });
       setSuccessMsg(`Transaksi berhasil disimpan! ${parsed.type === "income" ? "💰" : "💸"}`);
       setParsed(null);
       setMessage("");
@@ -209,6 +233,26 @@ export default function Chat() {
               <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Tanggal</span>
               <span style={{ fontWeight: "600", fontSize: "14px" }}>{parsed.transaction_date}</span>
             </div>
+
+            {/* Wallet Selector */}
+            {wallets.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderRadius: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Masuk / Keluar Dari</span>
+                <select
+                  value={selectedWalletId}
+                  onChange={(e) => setSelectedWalletId(e.target.value)}
+                  className="input-neon"
+                  style={{ width: "auto", padding: "6px 10px", fontSize: "13px" }}
+                >
+                  <option value="" style={{ background: "#0d0d12" }}>— Tanpa Dompet —</option>
+                  {wallets.map((w) => (
+                    <option key={w.id} value={w.id} style={{ background: "#0d0d12" }}>
+                      {w.name} {w.is_default ? "(Default)" : ""} ({new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(w.balance ?? 0)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
           </div>
 

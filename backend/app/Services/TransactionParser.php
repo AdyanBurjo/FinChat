@@ -519,7 +519,7 @@ class TransactionParser
             }
         }
 
-        return 'Lainnya';
+        return 'Lain-lain';
     }
 
     private function detectDate(string $message): string

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Receipt,
@@ -9,15 +9,59 @@ import {
   Zap,
   Menu,
   X,
+  Wallet,
+  Target,
+  Sparkles,
+  HandCoins,
+  CalendarDays,
+  Repeat,
+  PiggyBank,
+  ShieldCheck,
+  ChevronDown,
 } from "lucide-react";
 import api from "../../services/api";
 import { ConfirmModal } from "../ui/ConfirmModal";
+
+interface SingleNavItem {
+  type: "link";
+  label: string;
+  path: string;
+  icon: any;
+}
+
+interface DropdownNavItem {
+  type: "dropdown";
+  id: string;
+  label: string;
+  icon: any;
+  items: {
+    label: string;
+    path: string;
+    icon: any;
+  }[];
+}
+
+type NavGroupItem = SingleNavItem | DropdownNavItem;
 
 export default function DashboardLayout() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const location = useLocation();
   const navigate = useNavigate();
+
+  // State dropdown yang terbuka (default buka dropdown yang sedang aktif halaman anaknya)
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
+    planning: true,
+    tracking: false,
+  });
+
+  const toggleDropdown = (id: string) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,6 +72,16 @@ export default function DashboardLayout() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Otomatis buka dropdown jika user berada di route anak-anaknya
+  useEffect(() => {
+    const currentPath = location.pathname;
+    if (["/budgets", "/savings-goals", "/payday"].includes(currentPath)) {
+      setOpenDropdowns((prev) => ({ ...prev, planning: true }));
+    } else if (["/debts", "/recurring", "/calendar"].includes(currentPath)) {
+      setOpenDropdowns((prev) => ({ ...prev, tracking: true }));
+    }
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -40,17 +94,41 @@ export default function DashboardLayout() {
     }
   };
 
-  const navItems = [
-    { label: "Dashboard", path: "/", icon: LayoutDashboard },
-    { label: "Transaksi", path: "/transactions", icon: Receipt },
-    { label: "Kategori", path: "/categories", icon: Tags },
-    { label: "FinChat AI", path: "/chat", icon: MessageCircle },
+  const navGroups: NavGroupItem[] = [
+    { type: "link", label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { type: "link", label: "Transaksi", path: "/transactions", icon: Receipt },
+    { type: "link", label: "Dompet", path: "/wallets", icon: Wallet },
+    {
+      type: "dropdown",
+      id: "planning",
+      label: "Perencanaan",
+      icon: Target,
+      items: [
+        { label: "Anggaran", path: "/budgets", icon: Target },
+        { label: "Target Tabungan", path: "/savings-goals", icon: PiggyBank },
+        { label: "Payday & Safe Spend", path: "/payday", icon: ShieldCheck },
+      ],
+    },
+    {
+      type: "dropdown",
+      id: "tracking",
+      label: "Jadwal & Tagihan",
+      icon: CalendarDays,
+      items: [
+        { label: "Kalender Keuangan", path: "/calendar", icon: CalendarDays },
+        { label: "Transaksi Rutin", path: "/recurring", icon: Repeat },
+        { label: "Hutang & Piutang", path: "/debts", icon: HandCoins },
+      ],
+    },
+    { type: "link", label: "Insights", path: "/insights", icon: Sparkles },
+    { type: "link", label: "Kategori", path: "/categories", icon: Tags },
+    { type: "link", label: "FinChat AI", path: "/chat", icon: MessageCircle },
   ];
 
   const sidebarContent = (
     <>
       {/* Brand */}
-      <div style={{ marginBottom: "32px", padding: "0 8px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+      <div style={{ marginBottom: "28px", padding: "0 8px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
             <div style={{
@@ -89,22 +167,96 @@ export default function DashboardLayout() {
       </div>
 
       {/* Nav */}
-      <nav style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
-        {navItems.map((item) => {
-          const Icon = item.icon;
+      <nav style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, overflowY: "auto", paddingRight: "4px" }}>
+        {navGroups.map((entry) => {
+          if (entry.type === "link") {
+            const Icon = entry.icon;
+            return (
+              <NavLink
+                key={entry.path}
+                to={entry.path}
+                end={entry.path === "/"}
+                className={({ isActive }) =>
+                  `nav-item${isActive ? " active" : ""}`
+                }
+                onClick={() => isMobile && setIsSidebarOpen(false)}
+              >
+                <Icon size={17} />
+                {entry.label}
+              </NavLink>
+            );
+          }
+
+          // Dropdown group
+          const DropdownIcon = entry.icon;
+          const isGroupOpen = !!openDropdowns[entry.id];
+          const hasActiveChild = entry.items.some((sub) => location.pathname === sub.path);
+
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/"}
-              className={({ isActive }) =>
-                `nav-item${isActive ? " active" : ""}`
-              }
-              onClick={() => isMobile && setIsSidebarOpen(false)}
-            >
-              <Icon size={17} />
-              {item.label}
-            </NavLink>
+            <div key={entry.id} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <button
+                type="button"
+                onClick={() => toggleDropdown(entry.id)}
+                className={`nav-item ${hasActiveChild ? "active" : ""}`}
+                style={{
+                  width: "100%",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  background: hasActiveChild ? "rgba(57, 255, 20, 0.05)" : "transparent",
+                  borderColor: hasActiveChild ? "rgba(57, 255, 20, 0.15)" : "transparent",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <DropdownIcon size={17} />
+                  <span>{entry.label}</span>
+                </div>
+                <ChevronDown
+                  size={15}
+                  style={{
+                    transform: isGroupOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                    color: hasActiveChild ? "var(--neon-green)" : "var(--text-secondary)",
+                  }}
+                />
+              </button>
+
+              {isGroupOpen && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2px",
+                    marginLeft: "14px",
+                    paddingLeft: "10px",
+                    borderLeft: "1px dashed rgba(255, 255, 255, 0.12)",
+                    marginTop: "2px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  {entry.items.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <NavLink
+                        key={sub.path}
+                        to={sub.path}
+                        className={({ isActive }) =>
+                          `nav-item${isActive ? " active" : ""}`
+                        }
+                        style={{
+                          padding: "8px 12px",
+                          fontSize: "13px",
+                          borderRadius: "10px",
+                        }}
+                        onClick={() => isMobile && setIsSidebarOpen(false)}
+                      >
+                        <SubIcon size={15} />
+                        {sub.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>

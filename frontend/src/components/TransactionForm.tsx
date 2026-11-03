@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import api from "../services/api";
-import type { Category, Transaction } from "../types";
+import type { Category, Transaction, Wallet } from "../types";
 
 interface TransactionFormProps {
   transaction?: Transaction | null;
   onSuccess: () => void;
   onCancel?: () => void;
+  wallets?: Wallet[];
 }
 
-export default function TransactionForm({ transaction, onSuccess, onCancel }: TransactionFormProps) {
+export default function TransactionForm({ transaction, onSuccess, onCancel, wallets = [] }: TransactionFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [type, setType] = useState<"income" | "expense">(transaction?.type || "expense");
   const [categoryId, setCategoryId] = useState(transaction?.category_id?.toString() || "");
+  const [walletId, setWalletId] = useState(transaction?.wallet_id?.toString() || "");
   const [amount, setAmount] = useState(transaction?.amount || "");
   const [description, setDescription] = useState(transaction?.description || "");
   const [date, setDate] = useState(transaction?.transaction_date || new Date().toISOString().split("T")[0]);
@@ -44,6 +46,7 @@ export default function TransactionForm({ transaction, onSuccess, onCancel }: Tr
         amount: Number(amount),
         description: description || null,
         transaction_date: date,
+        wallet_id: walletId ? Number(walletId) : null,
       };
       if (transaction) {
         await api.put(`/transactions/${transaction.id}`, payload);
@@ -122,6 +125,24 @@ export default function TransactionForm({ transaction, onSuccess, onCancel }: Tr
           {filteredCategories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Wallet */}
+      <div>
+        <label className="label">Dompet</label>
+        <select
+          id="form-wallet"
+          value={walletId}
+          onChange={(e) => setWalletId(e.target.value)}
+          className="input-neon"
+        >
+          <option value="">— Tanpa Dompet —</option>
+          {wallets.map((wallet) => (
+            <option key={wallet.id} value={wallet.id}>
+              {wallet.name} ({new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(wallet.balance ?? 0)})
             </option>
           ))}
         </select>

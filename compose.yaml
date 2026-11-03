@@ -1,0 +1,50 @@
+
+services:
+  backend:
+    build: .
+    ports:
+      - "127.0.0.1:8001:80"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "127.0.0.1:5174:5173"
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: laravel_db_finchat
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel123
+    ports:
+      - "127.0.0.1:3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      PMA_HOST: mysql
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:

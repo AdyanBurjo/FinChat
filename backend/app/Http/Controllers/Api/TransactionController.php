@@ -12,14 +12,19 @@ class TransactionController extends Controller
     {
         $request->validate([
             'category_id' => ['nullable', 'exists:categories,id'],
+            'wallet_id'   => ['nullable', 'integer'],
             'month'       => ['nullable', 'integer', 'min:1', 'max:12'],
             'year'        => ['nullable', 'integer', 'min:2000', 'max:2100'],
         ]);
 
-        $query = $request->user()->transactions()->with('category');
+        $query = $request->user()->transactions()->with('category', 'wallet');
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('wallet_id')) {
+            $query->where('wallet_id', $request->wallet_id);
         }
 
         if ($request->filled('month') && $request->filled('year')) {
@@ -39,10 +44,11 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'type' => ['required', 'in:income,expense'],
-            'amount' => ['required', 'numeric', 'min:1'],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'category_id'      => ['nullable', 'exists:categories,id'],
+            'wallet_id'        => ['nullable', 'integer'],
+            'type'             => ['required', 'in:income,expense'],
+            'amount'           => ['required', 'numeric', 'min:1'],
+            'description'      => ['nullable', 'string', 'max:1000'],
             'transaction_date' => ['required', 'date'],
         ]);
 
@@ -59,6 +65,19 @@ class TransactionController extends Controller
             }
         }
 
+        if (!empty($validated['wallet_id'])) {
+            $walletBelongsToUser = $request->user()
+                ->wallets()
+                ->where('id', $validated['wallet_id'])
+                ->exists();
+
+            if (!$walletBelongsToUser) {
+                return response()->json([
+                    'message' => 'Invalid wallet.',
+                ], 422);
+            }
+        }
+
         $transaction = $request->user()
             ->transactions()
             ->create([
@@ -66,10 +85,10 @@ class TransactionController extends Controller
                 'source' => 'web',
             ]);
 
-        $transaction->load('category');
+        $transaction->load('category', 'wallet');
 
         return response()->json([
-            'message' => 'Transaction created successfully.',
+            'message'     => 'Transaction created successfully.',
             'transaction' => $transaction,
         ], 201);
     }
@@ -90,10 +109,11 @@ class TransactionController extends Controller
         $this->authorizeTransaction($request, $transaction);
 
         $validated = $request->validate([
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'type' => ['required', 'in:income,expense'],
-            'amount' => ['required', 'numeric', 'min:1'],
-            'description' => ['nullable', 'string', 'max:1000'],
+            'category_id'      => ['nullable', 'exists:categories,id'],
+            'wallet_id'        => ['nullable', 'integer'],
+            'type'             => ['required', 'in:income,expense'],
+            'amount'           => ['required', 'numeric', 'min:1'],
+            'description'      => ['nullable', 'string', 'max:1000'],
             'transaction_date' => ['required', 'date'],
         ]);
 
@@ -110,11 +130,24 @@ class TransactionController extends Controller
             }
         }
 
+        if (!empty($validated['wallet_id'])) {
+            $walletBelongsToUser = $request->user()
+                ->wallets()
+                ->where('id', $validated['wallet_id'])
+                ->exists();
+
+            if (!$walletBelongsToUser) {
+                return response()->json([
+                    'message' => 'Invalid wallet.',
+                ], 422);
+            }
+        }
+
         $transaction->update($validated);
-        $transaction->load('category');
+        $transaction->load('category', 'wallet');
 
         return response()->json([
-            'message' => 'Transaction updated successfully.',
+            'message'     => 'Transaction updated successfully.',
             'transaction' => $transaction,
         ]);
     }
@@ -122,6 +155,13 @@ class TransactionController extends Controller
     public function destroy(Request $request, Transaction $transaction)
     {
         $this->authorizeTransaction($request, $transaction);
+
+        // If this transaction is part of a transfer, delete the paired transaction too
+        if ($transaction->transfer_id) {
+            Transaction::where('transfer_id', $transaction->transfer_id)
+                ->where('id', '!=', $transaction->id)
+                ->delete();
+        }
 
         $transaction->delete();
 

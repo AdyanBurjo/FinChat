@@ -4,6 +4,14 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
+import Wallets from "./pages/Wallets";
+import Budgets from "./pages/Budgets";
+import Insights from "./pages/Insights";
+import Debts from "./pages/Debts";
+import FinancialCalendar from "./pages/FinancialCalendar";
+import Recurring from "./pages/Recurring";
+import SavingsGoals from "./pages/SavingsGoals";
+import PaydayPlanner from "./pages/PaydayPlanner";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Chat from "./pages/Chat";
@@ -25,6 +33,46 @@ function App() {
             <Route
               path="/transactions"
               element={<Transactions />}
+            />
+
+            <Route
+              path="/wallets"
+              element={<Wallets />}
+            />
+
+            <Route
+              path="/budgets"
+              element={<Budgets />}
+            />
+
+            <Route
+              path="/insights"
+              element={<Insights />}
+            />
+
+            <Route
+              path="/debts"
+              element={<Debts />}
+            />
+
+            <Route
+              path="/calendar"
+              element={<FinancialCalendar />}
+            />
+
+            <Route
+              path="/recurring"
+              element={<Recurring />}
+            />
+
+            <Route
+              path="/savings-goals"
+              element={<SavingsGoals />}
+            />
+
+            <Route
+              path="/payday"
+              element={<PaydayPlanner />}
             />
 
             <Route

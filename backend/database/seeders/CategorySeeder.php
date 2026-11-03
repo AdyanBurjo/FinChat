@@ -27,6 +27,7 @@ class CategorySeeder extends Seeder
             ['name' => 'Bonus', 'type' => 'income'],
             ['name' => 'Freelance', 'type' => 'income'],
             ['name' => 'Investasi', 'type' => 'income'],
+            ['name' => 'Transfer', 'type' => 'income'],
 
             // Expense
             ['name' => 'Makanan', 'type' => 'expense'],
@@ -35,6 +36,7 @@ class CategorySeeder extends Seeder
             ['name' => 'Kesehatan', 'type' => 'expense'],
             ['name' => 'Belanja', 'type' => 'expense'],
             ['name' => 'Tagihan', 'type' => 'expense'],
+            ['name' => 'Transfer', 'type' => 'expense'],
             ['name' => 'Lain-lain', 'type' => 'expense'],
         ];
 

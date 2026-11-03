@@ -402,10 +402,11 @@ class ChatController extends Controller
     public function confirm(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['required', 'in:income,expense'],
-            'amount' => ['required', 'numeric', 'min:1'],
-            'category_id' => ['nullable', 'integer'],
-            'description' => ['nullable', 'string'],
+            'type'             => ['required', 'in:income,expense'],
+            'amount'           => ['required', 'numeric', 'min:1'],
+            'category_id'      => ['nullable', 'integer'],
+            'wallet_id'        => ['nullable', 'integer'],
+            'description'      => ['nullable', 'string'],
             'transaction_date' => ['required', 'date'],
         ]);
 
@@ -425,19 +426,33 @@ class ChatController extends Controller
             }
         }
 
+        if (!empty($validated['wallet_id'])) {
+            $walletExists = $user->wallets()
+                ->where('id', $validated['wallet_id'])
+                ->exists();
+
+            if (!$walletExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Wallet tidak valid.',
+                ], 422);
+            }
+        }
+
         $transaction = $user->transactions()->create([
-            'category_id' => $validated['category_id'] ?? null,
-            'type' => $validated['type'],
-            'amount' => $validated['amount'],
-            'description' => $validated['description'] ?? null,
+            'category_id'      => $validated['category_id'] ?? null,
+            'wallet_id'        => $validated['wallet_id'] ?? null,
+            'type'             => $validated['type'],
+            'amount'           => $validated['amount'],
+            'description'      => $validated['description'] ?? null,
             'transaction_date' => $validated['transaction_date'],
-            'source' => 'chat',
+            'source'           => 'chat',
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Transaksi berhasil disimpan.',
-            'data' => $transaction->load('category'),
+            'data'    => $transaction->load('category', 'wallet'),
         ]);
     }
 }
