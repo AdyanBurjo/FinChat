@@ -28,6 +28,18 @@ services:
     networks:
       - internal
 
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      - internal
+
   mysql:
     image: mysql:8.4
     restart: unless-stopped
