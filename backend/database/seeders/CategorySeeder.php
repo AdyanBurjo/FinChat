@@ -31,6 +31,8 @@ class CategorySeeder extends Seeder
 
             // Expense
             ['name' => 'Makanan', 'type' => 'expense'],
+            ['name' => 'Kopi', 'type' => 'expense'],
+            ['name' => 'Rokok', 'type' => 'expense'],
             ['name' => 'Transportasi', 'type' => 'expense'],
             ['name' => 'Hiburan', 'type' => 'expense'],
             ['name' => 'Kesehatan', 'type' => 'expense'],

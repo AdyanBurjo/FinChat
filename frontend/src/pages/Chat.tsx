@@ -18,9 +18,10 @@ const formatRupiah = (value: number) =>
 
 const examples = [
   "tadi makan ayam 25rb",
+  "ngopi susu 22k",
+  "beli rokok surya 35rb",
   "beli bensin 50ribu",
   "gaji bulan ini 5jt",
-  "bayar listrik 250.000",
 ];
 
 export default function Chat() {
