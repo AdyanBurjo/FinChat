@@ -532,10 +532,73 @@ select.input-neon option {
 
 @media (max-width: 768px) {
   .page {
-    padding: 16px;
+    padding: 16px 14px 84px 14px;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .section-title {
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card p[style*="font-size: 26px"],
+  .stat-card p[style*="fontSize: 26px"],
+  .stat-card p[style*="font-size: 24px"],
+  .stat-card p[style*="fontSize: 24px"],
+  .stat-card p[style*="font-size: 22px"],
+  .stat-card p[style*="fontSize: 22px"] {
+    font-size: 20px !important;
+  }
+
+  .btn-neon,
+  .btn-ghost {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .input-neon {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .neon-table {
+    min-width: 600px;
+  }
+
+  /* Responsive action header bar */
+  .mobile-stack-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .mobile-stack-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .mobile-stack-header > div:last-child > * {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Modal cards fit screen with touch-safe margins */
+  .glass-neon[style*="maxWidth"],
+  .glass[style*="maxWidth"] {
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* Heatmap table touch scrolling */
+  .calendar-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
   }
 }

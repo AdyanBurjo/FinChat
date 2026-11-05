@@ -51,10 +51,13 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         style={{
           position: "relative",
           width: "100%",
-          maxWidth: "400px",
+          maxWidth: "440px",
+          maxHeight: "88vh",
+          overflowY: "auto",
           padding: "24px",
           zIndex: 1,
           boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
+          borderRadius: "18px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: title ? "20px" : "0" }}>

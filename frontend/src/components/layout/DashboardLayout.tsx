@@ -289,9 +289,10 @@ export default function DashboardLayout() {
           position: "fixed",
           top: 0, left: 0, right: 0,
           height: "56px",
-          zIndex: 20,
-          background: "rgba(5,5,8,0.95)",
+          zIndex: 40,
+          background: "rgba(5,5,8,0.92)",
           backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           borderBottom: "1px solid var(--border)",
           display: "flex",
           alignItems: "center",
@@ -300,14 +301,52 @@ export default function DashboardLayout() {
         }}>
           <button
             onClick={() => setIsSidebarOpen(true)}
-            style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", display: "flex", padding: "6px" }}
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid var(--border)",
+              borderRadius: "10px",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "38px",
+              height: "38px",
+            }}
+            aria-label="Buka Menu"
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "18px", fontWeight: "700" }}>
-            Fin<span className="neon-text">Chat</span>
-          </span>
-          <div style={{ width: "34px" }} />
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{
+              width: "26px", height: "26px",
+              background: "linear-gradient(135deg, rgba(57,255,20,0.2), rgba(57,255,20,0.05))",
+              border: "1px solid rgba(57,255,20,0.4)",
+              borderRadius: "7px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Zap size={14} color="var(--neon-green)" />
+            </div>
+            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "17px", fontWeight: "700" }}>
+              Fin<span className="neon-text">Chat</span>
+            </span>
+          </div>
+
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+              display: "flex",
+              padding: "6px",
+            }}
+            aria-label="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       )}
 
@@ -317,28 +356,32 @@ export default function DashboardLayout() {
           className="animate-fade-in"
           onClick={() => setIsSidebarOpen(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 30,
-            background: "rgba(5,5,8,0.7)",
-            backdropFilter: "blur(4px)",
+            position: "fixed", inset: 0, zIndex: 45,
+            background: "rgba(5,5,8,0.75)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
           }}
         />
       )}
 
       {/* Sidebar */}
       <aside style={{
-        width: "240px",
+        width: isMobile ? "280px" : "240px",
+        maxWidth: "85vw",
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",
         padding: "24px 16px",
         borderRight: "1px solid var(--border)",
-        background: "rgba(5,5,8,0.95)",
+        background: "rgba(5,5,8,0.98)",
         backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
         position: isMobile ? "fixed" : "sticky",
         top: 0,
-        left: isMobile ? (isSidebarOpen ? "0" : "-260px") : "0",
+        left: isMobile ? (isSidebarOpen ? "0" : "-300px") : "0",
         height: "100vh",
-        zIndex: 40,
+        zIndex: 50,
+        boxShadow: isMobile && isSidebarOpen ? "0 0 40px rgba(0,0,0,0.8)" : "none",
         transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}>
         {sidebarContent}
@@ -350,10 +393,124 @@ export default function DashboardLayout() {
         position: "relative",
         zIndex: 1,
         overflowY: "auto",
+        overflowX: "hidden",
         paddingTop: isMobile ? "56px" : "0",
+        paddingBottom: isMobile ? "68px" : "0",
+        minWidth: 0,
       }}>
         <Outlet />
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      {isMobile && (
+        <nav
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "64px",
+            zIndex: 35,
+            background: "rgba(8, 8, 13, 0.94)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderTop: "1px solid var(--border)",
+            display: "grid",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            alignItems: "center",
+            padding: "0 4px",
+          }}
+        >
+          {[
+            { label: "Home", path: "/", icon: LayoutDashboard },
+            { label: "Transaksi", path: "/transactions", icon: Receipt },
+            { label: "FinChat", path: "/chat", icon: MessageCircle, isSpecial: true },
+            { label: "Dompet", path: "/wallets", icon: Wallet },
+            { label: "Insights", path: "/insights", icon: Sparkles },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+
+            if (item.isSpecial) {
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textDecoration: "none",
+                    position: "relative",
+                    top: "-8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "50%",
+                      background: isActive
+                        ? "linear-gradient(135deg, #00f5ff, #39ff14)"
+                        : "linear-gradient(135deg, rgba(0,245,255,0.25), rgba(57,255,20,0.25))",
+                      border: `2px solid ${isActive ? "var(--neon-cyan)" : "rgba(0,245,255,0.4)"}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: isActive
+                        ? "0 0 20px rgba(0,245,255,0.5)"
+                        : "0 0 10px rgba(0,245,255,0.2)",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <Icon size={20} color={isActive ? "#050508" : "var(--neon-cyan)"} strokeWidth={2.5} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: "700",
+                      marginTop: "3px",
+                      color: isActive ? "var(--neon-cyan)" : "var(--text-secondary)",
+                    }}
+                  >
+                    AI Chat
+                  </span>
+                </NavLink>
+              );
+            }
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "4px",
+                  textDecoration: "none",
+                  padding: "6px 0",
+                  color: isActive ? "var(--neon-green)" : "var(--text-muted)",
+                  transition: "color 0.2s",
+                }}
+              >
+                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: isActive ? "700" : "500",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {item.label}
+                </span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      )}
 
       <ConfirmModal
         isOpen={isLogoutModalOpen}

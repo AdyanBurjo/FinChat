@@ -118,12 +118,12 @@ export default function FinancialCalendar() {
     <div className="page">
       {/* Header */}
       <div
-        className="animate-fade-in-up"
+        className="animate-fade-in-up mobile-stack-header"
         style={{
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "28px",
           flexWrap: "wrap",
           gap: "16px",
         }}
@@ -352,7 +352,7 @@ export default function FinancialCalendar() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="glass animate-fade-in-up delay-3" style={{ padding: "20px", overflowX: "auto" }}>
+      <div className="glass animate-fade-in-up delay-3 calendar-scroll-wrap" style={{ padding: "20px", overflowX: "auto" }}>
         {loading ? (
           <div style={{ padding: "64px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div className="spinner" />

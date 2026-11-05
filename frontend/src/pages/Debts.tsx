@@ -216,12 +216,12 @@ export default function Debts() {
     <div className="page">
       {/* Header */}
       <div
-        className="animate-fade-in-up"
+        className="animate-fade-in-up mobile-stack-header"
         style={{
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
-          marginBottom: "32px",
+          marginBottom: "28px",
           flexWrap: "wrap",
           gap: "16px",
         }}

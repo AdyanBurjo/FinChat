@@ -206,7 +206,7 @@ export default function Dashboard() {
     <div className="page">
 
       {/* Header */}
-      <div className="animate-fade-in-up" style={{ marginBottom: "32px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+      <div className="animate-fade-in-up mobile-stack-header" style={{ marginBottom: "28px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1 className="section-title" style={{ marginBottom: "6px" }}>
             Dashboard <span className="neon-text">Keuangan</span>
@@ -237,13 +237,13 @@ export default function Dashboard() {
               <ChevronLeft size={16} />
             </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 12px", minWidth: "150px", justifyContent: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 10px", minWidth: "120px", justifyContent: "center" }}>
               <Calendar size={13} color="var(--neon-green)" />
               <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", whiteSpace: "nowrap" }}>
                 {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
               </span>
               {isCurrentMonth && (
-                <span style={{ fontSize: "10px", fontWeight: "600", color: "var(--neon-green)", background: "rgba(57,255,20,0.1)", border: "1px solid rgba(57,255,20,0.25)", borderRadius: "99px", padding: "1px 7px" }}>
+                <span style={{ fontSize: "10px", fontWeight: "600", color: "var(--neon-green)", background: "rgba(57,255,20,0.1)", border: "1px solid rgba(57,255,20,0.25)", borderRadius: "99px", padding: "1px 6px" }}>
                   Ini
                 </span>
               )}

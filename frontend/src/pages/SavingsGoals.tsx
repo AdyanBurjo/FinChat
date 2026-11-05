@@ -277,7 +277,7 @@ export default function SavingsGoals() {
     <div className="page" style={{ paddingBottom: "60px" }}>
       {/* Header */}
       <div
-        className="animate-fade-in-up"
+        className="animate-fade-in-up mobile-stack-header"
         style={{
           display: "flex",
           justifyContent: "space-between",

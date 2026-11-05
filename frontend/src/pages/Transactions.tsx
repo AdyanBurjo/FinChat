@@ -121,14 +121,14 @@ return (
   <div className="page">
 
     {/* Header */}
-    <div className="animate-fade-in-up" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
+    <div className="animate-fade-in-up mobile-stack-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
       <div>
         <h1 className="section-title" style={{ marginBottom: "6px" }}>
           Transaksi <span className="neon-text">Keuangan</span>
         </h1>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Kelola semua transaksi kamu</p>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
         {wallets.length > 1 && (
           <button
             onClick={() => setShowTransferModal(true)}

@@ -174,7 +174,7 @@ export default function Wallets() {
     <div className="page">
 
       {/* Header */}
-      <div className="animate-fade-in-up" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
+      <div className="animate-fade-in-up mobile-stack-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1 className="section-title" style={{ marginBottom: "6px" }}>
             Manajemen <span className="neon-text">Dompet</span>
@@ -183,7 +183,7 @@ export default function Wallets() {
             Kelola semua sumber keuangan kamu
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           {wallets.length > 1 && (
             <button
               className="btn-ghost"

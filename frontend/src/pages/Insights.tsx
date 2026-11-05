@@ -148,7 +148,7 @@ export default function Insights() {
     <div className="page" style={{ paddingBottom: "60px" }}>
       {/* Header */}
       <div
-        className="animate-fade-in-up"
+        className="animate-fade-in-up mobile-stack-header"
         style={{
           display: "flex",
           alignItems: "flex-start",
