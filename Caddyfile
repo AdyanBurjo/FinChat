@@ -1,8 +1,4 @@
-{
-    email off
-}
-
-:80 {
+finchatapp.duckdns.org {
     encode zstd gzip
 
     handle /api/* {
@@ -19,4 +15,3 @@
         file_server
     }
 }
-

@@ -36,9 +36,14 @@ services:
     depends_on:
       - backend
     ports:
-      - "127.0.0.1:8080:80"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     networks:
       - internal
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
 
   mysql:
     image: mysql:8.4
@@ -71,3 +76,5 @@ networks:
 
 volumes:
   mysql_data:
+  caddy_data:
+  caddy_config:
